@@ -1,135 +1,109 @@
-# Turborepo starter
+# Picaso – Collaborative Whiteboard (Monorepo)
 
-This Turborepo starter is maintained by the Turborepo core team.
+Picaso is a collaborative whiteboard built with a Next.js frontend, an Express HTTP backend, a WebSocket server for realtime updates, and Prisma/PostgreSQL for persistence. The repo is managed with Turborepo and uses TypeScript across all packages.
 
-## Using this example
+## Apps and Packages
 
-Run the following command:
+Apps
+- `apps/picaso-frontend`: Next.js app (whiteboard UI, auth, rooms)
+- `apps/http-backend`: Express API (auth, rooms, chats, shapes persistence)
+- `apps/websocket-backend`: WebSocket server (room membership, realtime whiteboard events)
 
-```sh
-npx create-turbo@latest
+Packages
+- `packages/db`: Prisma schema and client
+- `packages/common`: shared Zod schemas/types
+- `packages/backend-common`: shared backend config (e.g., `JWT_SECRET`)
+- `packages/ui`: small shared UI components
+- `packages/eslint-config`, `packages/typescript-config`: shared config
+
+## Prerequisites
+- Node.js 18+
+- pnpm 9+
+- A PostgreSQL database (local or hosted)
+
+## Environment Variables
+
+Frontend (`apps/picaso-frontend/.env.local`)
+- `NEXT_PUBLIC_HTTP_BACKEND` (e.g., `http://localhost:3001`)
+- `NEXT_PUBLIC_WS_URL` (e.g., `ws://localhost:8080`)
+
+HTTP Backend (`apps/http-backend/.env`)
+- `DATABASE_URL` (PostgreSQL connection string)
+- `JWT_SECRET` (any long random string)
+
+WebSocket Backend (`apps/websocket-backend/.env`)
+- `JWT_SECRET` (must match HTTP backend)
+
+## Install
+```bash
+pnpm install
 ```
 
-## What's inside?
-
-This Turborepo includes the following packages/apps:
-
-### Apps and Packages
-
-- `docs`: a [Next.js](https://nextjs.org/) app
-- `web`: another [Next.js](https://nextjs.org/) app
-- `@repo/ui`: a stub React component library shared by both `web` and `docs` applications
-- `@repo/eslint-config`: `eslint` configurations (includes `eslint-config-next` and `eslint-config-prettier`)
-- `@repo/typescript-config`: `tsconfig.json`s used throughout the monorepo
-
-Each package/app is 100% [TypeScript](https://www.typescriptlang.org/).
-
-### Utilities
-
-This Turborepo has some additional tools already setup for you:
-
-- [TypeScript](https://www.typescriptlang.org/) for static type checking
-- [ESLint](https://eslint.org/) for code linting
-- [Prettier](https://prettier.io) for code formatting
-
-### Build
-
-To build all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build
-yarn dlx turbo build
-pnpm exec turbo build
+## Database Setup
+Set `DATABASE_URL` in `apps/http-backend/.env`. Then generate/migrate Prisma from the `packages/db` package:
+```bash
+pnpm --filter @repo/db exec prisma generate
+pnpm --filter @repo/db exec prisma migrate deploy
 ```
 
-You can build a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
+## Development
+Run all apps together:
+```bash
+pnpm dev
 ```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo build --filter=docs
+This starts:
+- Frontend at `http://localhost:3000`
+- HTTP API at `http://localhost:3001`
+- WebSocket server at `ws://localhost:8080`
 
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo build --filter=docs
-yarn exec turbo build --filter=docs
-pnpm exec turbo build --filter=docs
-```
-
-### Develop
-
-To develop all apps and packages, run the following command:
-
-```
-cd my-turborepo
-
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev
-yarn exec turbo dev
-pnpm exec turbo dev
+Run apps individually:
+```bash
+pnpm --filter http-backend dev
+pnpm --filter websocket-backend dev
+pnpm --filter picaso-frontend dev
 ```
 
-You can develop a specific package by using a [filter](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters):
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo dev --filter=web
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo dev --filter=web
-yarn exec turbo dev --filter=web
-pnpm exec turbo dev --filter=web
+## Build
+```bash
+pnpm build
 ```
 
-### Remote Caching
+## Features
+- Auth: `POST /signup`, `POST /signin` (JWT)
+- Rooms: `POST /room` (auth required)
+- Chats: `GET /chats/:roomId`
+- Whiteboard shapes:
+  - `GET /shapes/:roomId` – fetch non-erased shapes
+  - `POST /shapes` – create shape `{ roomId, type, data }`
+  - `POST /shapes/:id/erase` – soft-erase
+- WebSocket:
+  - Connect with `?token=<JWT>`
+  - Messages: `{ type: "join_room", roomId }`, `ADD_SHAPE`, `DELETE_SHAPE`, `CHAT`
+  - Broadcasts to users in the same room (except sender) for shape events
 
-> [!TIP]
-> Vercel Remote Cache is free for all plans. Get started today at [vercel.com](https://vercel.com/signup?/signup?utm_source=remote-cache-sdk&utm_campaign=free_remote_cache).
+## Frontend Notes
+- Tools: circle, rectangle, line, pencil, eraser
+- Shapes persist via HTTP; realtime sync via WebSocket
+- Endpoints are configured via `apps/picaso-frontend/app/config.ts`
 
-Turborepo can use a technique known as [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching) to share cache artifacts across machines, enabling you to share build caches with your team and CI/CD pipelines.
+## Scripts
+- `pnpm dev` – run all apps
+- `pnpm build` – build all apps
+- `pnpm lint` – lint all packages
+- `pnpm format` – format repo files
 
-By default, Turborepo will cache locally. To enable Remote Caching you will need an account with Vercel. If you don't have an account you can [create one](https://vercel.com/signup?utm_source=turborepo-examples), then enter the following commands:
-
+## Folder Structure (excerpt)
+```text
+apps/
+  http-backend/
+  picaso-frontend/
+  websocket-backend/
+packages/
+  db/
+  common/
+  backend-common/
+  ui/
 ```
-cd my-turborepo
 
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo login
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo login
-yarn exec turbo login
-pnpm exec turbo login
-```
-
-This will authenticate the Turborepo CLI with your [Vercel account](https://vercel.com/docs/concepts/personal-accounts/overview).
-
-Next, you can link your Turborepo to your Remote Cache by running the following command from the root of your Turborepo:
-
-```
-# With [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation) installed (recommended)
-turbo link
-
-# Without [global `turbo`](https://turborepo.com/docs/getting-started/installation#global-installation), use your package manager
-npx turbo link
-yarn exec turbo link
-pnpm exec turbo link
-```
-
-## Useful Links
-
-Learn more about the power of Turborepo:
-
-- [Tasks](https://turborepo.com/docs/crafting-your-repository/running-tasks)
-- [Caching](https://turborepo.com/docs/crafting-your-repository/caching)
-- [Remote Caching](https://turborepo.com/docs/core-concepts/remote-caching)
-- [Filtering](https://turborepo.com/docs/crafting-your-repository/running-tasks#using-filters)
-- [Configuration Options](https://turborepo.com/docs/reference/configuration)
-- [CLI Usage](https://turborepo.com/docs/reference/command-line-reference)
+## License
+MIT
