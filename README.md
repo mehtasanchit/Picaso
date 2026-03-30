@@ -1,5 +1,9 @@
 # Picaso – Collaborative Whiteboard (Monorepo)
 
+## Demo
+Check out the demo video of Picaso:
+<video src="./assets/picasoDemo.mp4" controls></video>
+
 Picaso is a collaborative whiteboard built with a Next.js frontend, an Express HTTP backend, a WebSocket server for realtime updates, and Prisma/PostgreSQL for persistence. The repo is managed with Turborepo and uses TypeScript across all packages.
 
 ## Apps and Packages
