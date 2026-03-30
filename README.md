@@ -2,9 +2,8 @@
 
 ## Demo
 Check out the demo video of Picaso:
-[**▶️ Click here to watch the Picaso Demo Video**](https://github.com/mehtasanchit/Picaso/raw/main/assets/picasoDemo.mp4)
 
-https://github.com/mehtasanchit/Picaso/raw/main/assets/picasoDemo.mp4
+https://github.com/user-attachments/assets/19890a67-653a-49ae-b44b-edc18882bd2b
 
 Picaso is a collaborative whiteboard built with a Next.js frontend, an Express HTTP backend, a WebSocket server for realtime updates, and Prisma/PostgreSQL for persistence. The repo is managed with Turborepo and uses TypeScript across all packages.
 
