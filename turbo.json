@@ -1,6 +1,11 @@
 {
   "$schema": "https://turborepo.com/schema.json",
   "ui": "tui",
+  "globalEnv": [
+    "ENABLE_EXPERIMENTAL_COREPACK",
+    "NEXT_PUBLIC_HTTP_BACKEND",
+    "NEXT_PUBLIC_WS_URL"
+  ],
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
